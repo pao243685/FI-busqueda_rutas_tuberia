@@ -12,8 +12,8 @@ from .vista import Vista
 from .widgets import Boton, Deslizador, Interruptor, Selector, Tarjeta
 
 MSG_INICIAL = "Elige el punto de desagüe para colocar el drenaje"
-TXT_PANTALLA = "Pantalla completa  (F11)"
-TXT_SALIR = "Salir de pantalla completa  (Esc)"
+TXT_PANTALLA = "Pantalla completa"
+TXT_SALIR = "Salir de pantalla completa"
 
 
 def dinero(x):
@@ -80,7 +80,7 @@ class App:
 
         tk.Label(p, text="Enrutador de tuberías", font=tema.fuente(17, True), bg=tema.PANEL,
                  fg=tema.TEXTO, anchor="w").pack(fill="x", padx=self.PAD, pady=(20, 0))
-        tk.Label(p, text="Búsqueda A*  ·  Fundamentos de IA", font=tema.fuente(9), bg=tema.PANEL,
+        tk.Label(p, text="Por búsqueda A* ", font=tema.fuente(9), bg=tema.PANEL,
                  fg=tema.MUTED, anchor="w").pack(fill="x", padx=self.PAD)
 
         self.lbl_msg = tk.Label(p, text=MSG_INICIAL, font=tema.fuente(10), bg=tema.TARJETA, fg=tema.TEXTO,
@@ -250,7 +250,7 @@ class App:
             return
         idx = self.cercano(ev)
         self.canvas.config(cursor="hand2" if idx is not None else "")
-        self.lbl_msg.config(text=("Desagüe: " + self.m.desagues[idx][0] + "  (clic para elegirlo)")
+        self.lbl_msg.config(text=("Desagüe: " + self.m.desagues[idx][0] + " ")
                             if idx is not None else MSG_INICIAL)
 
     def clic(self, ev):
@@ -263,8 +263,8 @@ class App:
         self.limpiar_ruta()
         self.sel = idx
         self.dibujar_marcas()
-        self.lbl_msg.config(text=f"Inicio: {self.m.desagues[idx][0]}  →  meta: registro de la calle. "
-                                 f"Presiona «Iniciar búsqueda».")
+        self.lbl_msg.config(text=f"Inicio: {self.m.desagues[idx][0]}  \nmeta: registro de la calle. "
+                            )
 
     def limpiar_ruta(self):
         self.cancelar()
@@ -398,7 +398,7 @@ class App:
         self.animando = False
         self.mostrando = True
         self.btn_iniciar.set_activo(True)
-        self.lbl_msg.config(text="¡Ruta encontrada!  Los círculos oscuros son los codos de 90°.")
+        self.lbl_msg.config(text="La ruta fue creada, los círculos oscuros son los codos de 90°.")
         self.actualizar_resultado()
 
 
