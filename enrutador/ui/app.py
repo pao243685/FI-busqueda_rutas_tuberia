@@ -46,6 +46,7 @@ class App:
         self.res = None
         self.sel = None
         self.codo_usado = None
+        self.total_estimado = None
         self.dibujar_base()
 
     def calcular_escala(self):
@@ -164,6 +165,7 @@ class App:
         self.reiniciar_resultado()
 
     def reiniciar_resultado(self):
+        self.total_estimado = None
         self.t_total.fijar("-", "Elige inicio y meta para iniciar la búsqueda")
         self.t_metros.fijar("-")
         self.t_codos.fijar("-")
@@ -205,7 +207,8 @@ class App:
         r = self.res
         pm, pc = self.precio_m.get(), self.precio_codo.get()
         pres = estimar(r, pm, pc)
-        self.t_total.fijar(dinero(pres.total), "MXN  ·  tubería + codos")
+        total = pres.total if self.total_estimado is None else self.total_estimado
+        self.t_total.fijar(dinero(total), "MXN  ·  tubería + codos")
         self.t_metros.fijar(f"{pres.metros:.1f} m", f"{dinero(pres.tubo)}  a {dinero(pm)} por metro")
         self.t_codos.fijar(str(pres.codos), f"{dinero(pres.accesorios)}  a {dinero(pc)} c/u")
         self.t_origen.fijar(self.m.desagues[self.sel][0], f"{len(r.explorados)} nodos explorados")
@@ -433,6 +436,7 @@ class App:
         self.dibujar_tubo(self.acum[-1], cabeza=False)
         self.animando = False
         self.mostrando = True
+        self.total_estimado = estimar(self.res, self.precio_m.get(), self.precio_codo.get()).total
         self.btn_iniciar.set_activo(True)
         self.lbl_msg.config(text="La ruta fue creada, los círculos oscuros son los codos de 90°.")
         self.actualizar_resultado()
