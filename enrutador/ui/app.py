@@ -39,11 +39,11 @@ class App:
         self.construir_lienzo()
         root.bind("<F11>", self.alternar_pantalla)
         root.bind("<Escape>", self.salir_pantalla)
-        self.sel = None
         self.animando = False
         self.mostrando = False
         self._job = None
         self.res = None
+        self.sel = None
         self.dibujar_base()
 
     def calcular_escala(self):
@@ -156,7 +156,7 @@ class App:
         self.reiniciar_resultado()
 
     def reiniciar_resultado(self):
-        self.t_total.fijar("-", "Elige un desagüe e inicia la búsqueda")
+        self.t_total.fijar("-", "Elige inicio y meta para iniciar la búsqueda")
         self.t_metros.fijar("-")
         self.t_codos.fijar("-")
         self.t_origen.fijar("-")

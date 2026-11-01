@@ -25,10 +25,7 @@ def pruebas():
 
 def construir_parser():
     p = argparse.ArgumentParser(description="Enrutador de tuberías con A*")
-    p.add_argument("imagen", nargs="?", help="ruta del plano (por defecto plano.jpg)")
     p.add_argument("--test", action="store_true", help="corre A* desde todos los desagües sin abrir ventana")
-    p.add_argument("--png", metavar="SALIDA", help="exporta un PNG sin abrir ventana")
-    p.add_argument("--desague", type=int, metavar="N", help="índice del desagüe para dibujar su ruta en el PNG")
     return p
 
 
@@ -37,13 +34,10 @@ def main(argv=None):
     if args.test:
         return pruebas()
     try:
-        ruta = encontrar_imagen(args.imagen)
+        ruta = encontrar_imagen()
     except FileNotFoundError as e:
         sys.exit(str(e))
     try:
-        if args.png:
-            from .render.exportar import exportar_png
-            return exportar_png(ruta, args.png, args.desague)
         from .ui.app import lanzar
     except ImportError:
         sys.exit("Falta tkinter o Pillow. Instala con:  pip install pillow")

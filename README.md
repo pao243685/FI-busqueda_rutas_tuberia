@@ -33,17 +33,14 @@ La regla es que `nucleo` no importa nada de `render` ni de `ui`. `render` solo d
 ```
 pip install -r requirements.txt
 python main.py
-python main.py ruta/plano.jpg
 python main.py --test
-python main.py --png salida.png --desague 3
 ```
 
-Si no pasas ruta, busca `plano.jpg` junto a `main.py`, en `assets/` o en la carpeta actual.
+El plano debe llamarse `plano.jpg`, `plano.png` o `plano.jpeg` y estar en la raíz del proyecto, junto a `main.py`.
 
 ## Notas
 
 - La interfaz muestra el plano girado 90 grados (acostado) y la calle queda a la derecha. La lógica sigue trabajando con las coordenadas originales del plano.
-- `--desague N` reemplaza al número suelto que se pasaba después de `--png`.
 - El costo aproximado es metros de tubería por precio por metro, más codos por precio por codo. Los precios por defecto están en `nucleo/config.py` (`PRECIO_METRO_MXN`, `PRECIO_CODO_MXN`) y se pueden cambiar desde el panel. Son valores de referencia, ajústalos a tu cotización real.
 - Los metros salen de la escala del plano (`ESCALA_PX_M`), así que son aproximados.
 - Pantalla completa con F11 o con el botón del panel, y se sale con Esc.
