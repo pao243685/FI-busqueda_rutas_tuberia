@@ -44,7 +44,7 @@ class Modelo:
                         if rx0 <= self.xs[i] <= rx1 and f > self.fv[j][i]:
                             self.fv[j][i] = f
         self.meta = self.ajustar(*META_PX)
-        self.alcanzables = self.bfs(self.meta)
+        self.alcanzables = self.alcanzables_desde(self.meta)
         self.desagues = [(nom, self.ajustar(x, y, self.alcanzables)) for nom, x, y in DESAGUES]
 
     def vecinos(self, i, j):
@@ -96,7 +96,7 @@ class Modelo:
             largo, f, extra = self.py, self.fv[j][i], self.mv[j][i]
         return largo / ESCALA_PX_M * f + extra
 
-    def bfs(self, origen):
+    def alcanzables_desde(self, origen):
         visto, cola = {origen}, [origen]
         while cola:
             i, j = cola.pop()
