@@ -1,10 +1,3 @@
-# Enrutador de tuberías con A*
-
-Proyecto U2 de Fundamentos de Inteligencia Artificial (algoritmos de búsqueda).
-
-## Estructura
-
-```
 main.py                      punto de entrada
 requirements.txt
 enrutador/
@@ -24,28 +17,3 @@ enrutador/
     vista.py                 transformación del plano a pantalla (rotado)
     widgets.py               botones, interruptores, selector, deslizador, tarjetas
     app.py                   ventana principal y animación
-```
-
-La regla es que `nucleo` no importa nada de `render` ni de `ui`. `render` solo depende de `nucleo`, y `ui` depende de las dos.
-
-## Uso
-
-```
-pip install -r requirements.txt
-python main.py
-python main.py --test
-```
-
-El plano debe llamarse `plano.jpg`, `plano.png` o `plano.jpeg` y estar en la raíz del proyecto, junto a `main.py`.
-
-## Notas
-
-- La interfaz muestra el plano girado 90 grados (acostado) y la calle queda a la derecha. La lógica sigue trabajando con las coordenadas originales del plano.
-- El costo aproximado es metros de tubería por precio por metro, más codos por precio por codo. Los precios por defecto están en `nucleo/config.py` (`PRECIO_METRO_MXN`, `PRECIO_CODO_MXN`) y se pueden cambiar desde el panel. Son valores de referencia, ajústalos a tu cotización real.
-- Los metros salen de la escala del plano (`ESCALA_PX_M`), así que son aproximados.
-- Pantalla completa con F11 o con el botón del panel, y se sale con Esc.
-- `ZONAS_BLOQUEADAS` son celdas prohibidas (closets, isla y barra, escalera, autos). Se tratan igual que un muro.
-- `ZONAS_COSTO` no bloquean, multiplican el costo por metro de las aristas que tocan (recámaras x4, sala, comedor y estudio x3, jardines x4, muebles grandes x8, gabinetes de cocina x6). Los factores son siempre mayores o iguales a 1, así que la heurística de Manhattan sigue siendo admisible y A* sigue dando la ruta óptima según esos costos.
-- Los márgenes de 1.0 m a la cimentación perimetral (x2) y de 0.5 m a las zonas eléctricas (x3) también son zonas de costo. Se pueden cruzar, por ejemplo con camisa de protección. Se ajustan en `nucleo/config.py`.
-- Las puertas no se bloquean. Los vanos siguen siendo los puntos de paso entre cuartos.
-- `metros` y el costo aproximado en pesos miden tubería real. Las penalizaciones solo cambian qué ruta elige A*, no cuánto cuesta el material.

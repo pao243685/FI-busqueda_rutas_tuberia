@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 
 from ..nucleo.busqueda import a_estrella
 from ..nucleo.config import COSTO_CODO_M, PRECIO_CODO_MXN, PRECIO_METRO_MXN, REF_H, REF_W
-from ..nucleo.costos import estimar
+from ..nucleo.costos import costo_codo_equivalente, estimar
 from ..nucleo.modelo import Modelo
 from ..render.capas import capa_malla, capa_obstaculos
 from . import tema
@@ -12,6 +12,7 @@ from .vista import Vista
 from .widgets import Boton, Deslizador, Interruptor, Selector, Tarjeta
 
 MSG_INICIAL = "Elige el punto de desagüe para colocar el drenaje"
+MSG_RECALCULAR = "Cambió el costo por codo. Pulsa Iniciar búsqueda para recalcular la ruta con los precios nuevos."
 TXT_PANTALLA = "Pantalla completa"
 TXT_SALIR = "Salir de pantalla completa"
 
@@ -44,6 +45,7 @@ class App:
         self._job = None
         self.res = None
         self.sel = None
+        self.codo_usado = None
         self.dibujar_base()
 
     def calcular_escala(self):
@@ -98,19 +100,25 @@ class App:
         self.btn_pantalla.pack(padx=self.PAD)
 
         self.seccion(p, "Búsqueda")
-        self.costo_codo = tk.DoubleVar(value=COSTO_CODO_M)
+        self.costo_codo = tk.StringVar()
         self.velocidad = tk.IntVar(value=10)
-        Selector(self.fila(p, "Costo por codo"), self.costo_codo, 0.0, 5.0, 0.1,
-                 formato="{:.1f} m").pack(side="right")
+        tk.Label(self.fila(p, "Costo por codo (auto)"), textvariable=self.costo_codo,
+                 font=tema.fuente(11, True), bg=tema.PANEL, fg=tema.TEXTO).pack(side="right")
         Deslizador(self.fila(p, "Velocidad"), self.velocidad, 1, 60, ancho=150).pack(side="right")
 
         self.seccion(p, "Precios (MXN)")
         self.precio_m = tk.DoubleVar(value=PRECIO_METRO_MXN)
         self.precio_codo = tk.DoubleVar(value=PRECIO_CODO_MXN)
-        Selector(self.fila(p, "Tubería por metro"), self.precio_m, 0, 5000, 5, formato="${:,.0f}",
-                 decimales=0, comando=self.actualizar_resultado).pack(side="right")
-        Selector(self.fila(p, "Codo de 90°"), self.precio_codo, 0, 5000, 5, formato="${:,.0f}",
-                 decimales=0, comando=self.actualizar_resultado).pack(side="right")
+        self.sel_metro = Selector(self.fila(p, "Tubería por metro"), self.precio_m, 1, 4999, 1,
+                                  formato="${:,.0f}", decimales=0, comando=self.cambio_precio_metro)
+        self.sel_metro.pack(side="right")
+        self.sel_codo = Selector(self.fila(p, "Codo de 90°"), self.precio_codo, 2, 5000, 1,
+                                 formato="${:,.0f}", decimales=0, comando=self.cambio_precio_codo)
+        self.sel_codo.pack(side="right")
+        tk.Label(p, text="El codo debe costar más que el metro de tubería.",
+                 font=tema.fuente(8), bg=tema.PANEL, fg=tema.MUTED, anchor="w").pack(
+            fill="x", padx=self.PAD, pady=(2, 0))
+        self.refrescar_costo_codo()
 
         self.seccion(p, "Capas")
         self.ver_obst = tk.BooleanVar(value=True)
@@ -160,6 +168,36 @@ class App:
         self.t_metros.fijar("-")
         self.t_codos.fijar("-")
         self.t_origen.fijar("-")
+
+    def codo_equivalente(self):
+        try:
+            return costo_codo_equivalente(self.precio_m.get(), self.precio_codo.get())
+        except (ValueError, tk.TclError):
+            return COSTO_CODO_M
+
+    def refrescar_costo_codo(self):
+        self.costo_codo.set(f"{self.codo_equivalente():.2f} m")
+
+    def forzar_codo_mayor(self):
+        minimo = self.precio_m.get() + 1
+        if self.precio_codo.get() < minimo:
+            self.precio_codo.set(minimo)
+            self.sel_codo.mostrar()
+
+    def cambio_precio_metro(self):
+        self.forzar_codo_mayor()
+        self.al_cambiar_precios()
+
+    def cambio_precio_codo(self):
+        self.forzar_codo_mayor()
+        self.al_cambiar_precios()
+
+    def al_cambiar_precios(self):
+        self.refrescar_costo_codo()
+        self.actualizar_resultado()
+        if (self.mostrando and not self.animando and self.codo_usado is not None
+                and abs(self.codo_equivalente() - self.codo_usado) > 1e-9):
+            self.lbl_msg.config(text=MSG_RECALCULAR)
 
     def actualizar_resultado(self):
         if not self.mostrando:
@@ -287,10 +325,8 @@ class App:
             self.lbl_msg.config(text=MSG_INICIAL)
             return
         self.limpiar_ruta()
-        try:
-            codo = float(self.costo_codo.get())
-        except (ValueError, tk.TclError):
-            codo = COSTO_CODO_M
+        codo = self.codo_equivalente()
+        self.codo_usado = codo
         self.res = a_estrella(self.m, self.m.desagues[self.sel][1], self.m.meta, codo)
         self.animando = True
         self.btn_iniciar.set_activo(False)

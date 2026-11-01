@@ -3,17 +3,18 @@ import sys
 
 from .nucleo.busqueda import a_estrella
 from .nucleo.config import ESCALA_PX_M, PRECIO_CODO_MXN, PRECIO_METRO_MXN
-from .nucleo.costos import estimar
+from .nucleo.costos import costo_codo_equivalente, estimar
 from .nucleo.modelo import Modelo
 from .recursos import encontrar_imagen
 
 
 def pruebas():
     m = Modelo()
+    codo = costo_codo_equivalente(PRECIO_METRO_MXN, PRECIO_CODO_MXN)
     print(f"Retícula: {m.nx + 1} x {m.ny + 1} nodos  |  paso = {m.px / ESCALA_PX_M:.2f} m  |  "
           f"nodos transitables: {len(m.alcanzables)}  |  meta en nodo {m.meta}")
     for nom, nodo in m.desagues:
-        res = a_estrella(m, nodo, m.meta)
+        res = a_estrella(m, nodo, m.meta, codo)
         if res.ruta:
             pres = estimar(res, PRECIO_METRO_MXN, PRECIO_CODO_MXN)
             print(f"{nom:28s} {res.metros:6.1f} m   {len(res.codos):2d} codos   "
