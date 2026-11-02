@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from .nucleo.busqueda import a_estrella
+from .nucleo.busqueda import a_estrella, cruces_muro
 from .nucleo.config import ESCALA_PX_M, PRECIO_CODO_MXN, PRECIO_METRO_MXN
 from .nucleo.costos import costo_codo_equivalente, estimar
 from .nucleo.modelo import Modelo
@@ -19,7 +19,8 @@ def pruebas():
             pres = estimar(res, PRECIO_METRO_MXN, PRECIO_CODO_MXN)
             print(f"{nom:28s} {res.metros:6.1f} m   {len(res.codos):2d} codos   "
                   f"costo A* {res.costo:6.2f}   aprox ${pres.total:8,.0f} MXN   "
-                  f"explorados {len(res.explorados)}")
+                  f"cruces {cruces_muro(m, res.ruta)}   "
+                  f"explorados {len(res.explorados):4d}   expandidos {res.expandidos:4d}")
         else:
             print(f"{nom:28s} SIN RUTA")
 

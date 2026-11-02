@@ -166,7 +166,7 @@ class App:
 
     def reiniciar_resultado(self):
         self.total_estimado = None
-        self.t_total.fijar("-", "Elige inicio y meta para iniciar la búsqueda")
+        self.t_total.fijar("-", "Elige el inicio para iniciar la búsqueda")
         self.t_metros.fijar("-")
         self.t_codos.fijar("-")
         self.t_origen.fijar("-")

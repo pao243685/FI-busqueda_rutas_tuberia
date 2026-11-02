@@ -11,7 +11,6 @@ enrutador/
     costos.py                presupuesto aproximado (metros y codos)
   render/                    capas con PIL (usables sin ventana)
     capas.py
-    exportar.py
   ui/                        interfaz tkinter
     tema.py                  colores y fuentes
     vista.py                 transformación del plano a pantalla (rotado)
