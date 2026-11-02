@@ -102,13 +102,24 @@ class Selector(tk.Frame):
         super().__init__(master, bg=fondo)
         self.var, self.minimo, self.maximo, self.paso = variable, minimo, maximo, paso
         self.formato, self.decimales, self.comando = formato, decimales, comando
+        self.texto = tk.StringVar()
         Boton(self, "-", lambda: self.cambiar(-1), ancho=32, alto=32, estilo="secundario",
               fondo=fondo, tam=13).pack(side="left")
-        self.valor = tk.Label(self, width=8, bg=fondo, fg=tema.TEXTO, font=tema.fuente(11, True))
+        validar = (self.register(self.validar_entrada), "%P")
+        self.valor = tk.Entry(self, textvariable=self.texto, width=8, justify="center",
+                              validate="key", validatecommand=validar,
+                              bg=fondo, fg=tema.TEXTO, insertbackground=tema.TEXTO,
+                              relief="flat", font=tema.fuente(11, True))
         self.valor.pack(side="left")
+        self.valor.bind("<FocusOut>", self.confirmar_entrada)
+        self.valor.bind("<Return>", self.confirmar_entrada)
         Boton(self, "+", lambda: self.cambiar(1), ancho=32, alto=32, estilo="secundario",
               fondo=fondo, tam=13).pack(side="left")
         self.mostrar()
+
+    @staticmethod
+    def validar_entrada(valor):
+        return valor == "" or valor.isdigit()
 
     def cambiar(self, signo):
         v = self.var.get() + signo * self.paso
@@ -117,8 +128,23 @@ class Selector(tk.Frame):
         if self.comando:
             self.comando()
 
+    def confirmar_entrada(self, _=None):
+        texto = self.texto.get()
+        if not texto:
+            self.mostrar()
+            return
+        valor = int(texto)
+        if self.minimo <= valor <= self.maximo:
+            cambio = self.var.get() != valor
+            self.var.set(valor)
+            self.mostrar()
+            if cambio and self.comando:
+                self.comando()
+        else:
+            self.mostrar()
+
     def mostrar(self):
-        self.valor.config(text=self.formato.format(self.var.get()))
+        self.texto.set(str(int(round(self.var.get()))))
 
 
 class Deslizador(tk.Canvas):
