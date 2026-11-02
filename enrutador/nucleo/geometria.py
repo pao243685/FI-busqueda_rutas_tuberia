@@ -46,18 +46,19 @@ RIESGOS = [
 FUERA = [(-300, -300, 52, 2300), (952, -300, 1300, 2300), (-300, -300, 1300, 16), (-300, 1776, 1300, 2300)]
 
 DESAGUES = [
-    ("Ducha exterior (alberca)", 110, 302),
-    ("Lavabo exterior", 146, 373),
-    ("Lavandería", 165, 708),
-    ("Área gourmet (fregadero)", 460, 588),
-    ("Cocina (fregadero)", 460, 856),
-    ("WC suite master", 796, 768),
-    ("WC 02", 735, 1110),
-    ("WC 01", 735, 1160),
-    ("Lavabo social", 235, 1495),
+    ("Ducha exterior (alberca)", (5, 13)),
+    ("Lavabo exterior", (6, 16)),
+    ("Lavandería", (7, 30)),
+    ("Área gourmet (fregadero)", (20, 25)),
+    ("Cocina (fregadero)", (20, 36)),
+    ("WC suite master", (34, 32)),
+    ("WC 02", (31, 47)),
+    ("WC 01", (31, 49)),
+    ("Lavabo social", (10, 63)),
 ]
 
-META_PX = (471, 1764)
+META = (20, 74)
+
 META_NOMBRE = "Registro / conexión al drenaje de la calle"
 
 ZONAS_BLOQUEADAS = [

@@ -1,5 +1,5 @@
 from .config import COSTO_CRUCE_MURO_M, ESCALA_PX_M, REF_H, REF_W, SUB
-from .geometria import (ALBERCA, DESAGUES, FUERA, META_PX, MUROS_CRUZABLES, MUROS_PERIMETRO, RIESGOS,
+from .geometria import (ALBERCA, DESAGUES, FUERA, META, MUROS_CRUZABLES, MUROS_PERIMETRO, RIESGOS,
                         ZONAS_BLOQUEADAS, ZONAS_COSTO)
 
 N, E, S, O = 0, 1, 2, 3
@@ -43,9 +43,9 @@ class Modelo:
                     for i in range(self.nx + 1):
                         if rx0 <= self.xs[i] <= rx1 and f > self.fv[j][i]:
                             self.fv[j][i] = f
-        self.meta = self.ajustar(*META_PX)
-        self.alcanzables = self.alcanzables_desde(self.meta)
-        self.desagues = [(nom, self.ajustar(x, y, self.alcanzables)) for nom, x, y in DESAGUES]
+            self.meta = META
+            self.alcanzables = self.alcanzables_desde(self.meta)
+            self.desagues = list(DESAGUES)
 
     def vecinos(self, i, j):
         if j > 0 and self.v[j - 1][i]:
@@ -105,19 +105,6 @@ class Modelo:
                     visto.add((ni, nj))
                     cola.append((ni, nj))
         return visto
-
-    def ajustar(self, x, y, permitidos=None):
-        mejor, dmin = None, 1e18
-        for j in range(self.ny + 1):
-            for i in range(self.nx + 1):
-                if permitidos is not None and (i, j) not in permitidos:
-                    continue
-                if permitidos is None and not any(True for _ in self.vecinos(i, j)):
-                    continue
-                d = (self.xs[i] - x) ** 2 + (self.ys[j] - y) ** 2
-                if d < dmin:
-                    mejor, dmin = (i, j), d
-        return mejor
 
     def pos(self, nodo):
         return self.xs[nodo[0]], self.ys[nodo[1]]
