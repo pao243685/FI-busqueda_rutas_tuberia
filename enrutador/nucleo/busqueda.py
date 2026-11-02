@@ -2,7 +2,7 @@ import heapq
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
-from .config import COSTO_CODO_M, ESCALA_PX_M
+from .config import COSTO_CODO_M, COSTO_CRUCE_MURO_M, ESCALA_PX_M
 from .modelo import Modelo
 
 
@@ -74,3 +74,14 @@ def indices_codos(ruta):
         if d1 != d2:
             r.append(k)
     return r
+
+
+def cruces_muro(m: Modelo, ruta):
+    """Número de muros interiores que cruza la ruta."""
+    total = 0.0
+    for (i, j), (ni, nj) in zip(ruta, ruta[1:]):
+        if j == nj:  
+            total += m.mh[j][min(i, ni)]
+        else:  
+            total += m.mv[min(j, nj)][i]
+    return round(total / COSTO_CRUCE_MURO_M)
