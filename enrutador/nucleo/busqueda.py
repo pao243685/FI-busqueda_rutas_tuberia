@@ -5,6 +5,8 @@ from typing import List, Optional, Tuple
 from .config import COSTO_CODO_M, COSTO_CRUCE_MURO_M, ESCALA_PX_M
 from .modelo import Modelo
 
+SIN_DIRECCION = -1
+
 
 @dataclass
 class Resultado:
@@ -16,72 +18,75 @@ class Resultado:
     expandidos: int = 0
 
 
-def a_estrella(m: Modelo, inicio, meta, costo_codo=COSTO_CODO_M) -> Resultado:
+def a_estrella(modelo: Modelo, inicio, meta, costo_codo=COSTO_CODO_M) -> Resultado:
     def h(i, j):
-        return (abs(i - meta[0]) * m.px + abs(j - meta[1]) * m.py) / ESCALA_PX_M
+        return (abs(i - meta[0]) * modelo.px + abs(j - meta[1]) * modelo.py) / ESCALA_PX_M
 
-    ini = (inicio[0], inicio[1], -1)
-    g, padre = {ini: 0.0}, {ini: None}
-    abierta = [(h(*inicio), h(*inicio), 0, ini)]
-    cerrados, vistos = set(), set()
+    estado_inicial = (inicio[0], inicio[1], SIN_DIRECCION)
+    g, padre = {estado_inicial: 0.0}, {estado_inicial: None}
+    frontera = [(h(*inicio), h(*inicio), 0, estado_inicial)]
+    estados_cerrados, nodos_vistos = set(), set()
     explorados = []
-    cont = 1
-    while abierta:
-        _, _, _, act = heapq.heappop(abierta)
-        if act in cerrados:
+    orden_insercion = 1
+    while frontera:
+        _, _, _, estado_actual = heapq.heappop(frontera)
+        if estado_actual in estados_cerrados:
             continue
-        cerrados.add(act)
-        i, j, d0 = act
-        if (i, j) not in vistos:
-            vistos.add((i, j))
-            p = padre[act]
-            explorados.append(((p[0], p[1]) if p else None, (i, j)))
+        estados_cerrados.add(estado_actual)
+        i, j, dir_llegada = estado_actual
+        if (i, j) not in nodos_vistos:
+            nodos_vistos.add((i, j))
+            estado_padre = padre[estado_actual]
+            nodo_padre = (estado_padre[0], estado_padre[1]) if estado_padre else None
+            explorados.append((nodo_padre, (i, j)))
         if (i, j) == tuple(meta):
-            ruta, e = [], act
-            while e is not None:
-                ruta.append((e[0], e[1]))
-                e = padre[e]
+            ruta, estado = [], estado_actual
+            while estado is not None:
+                ruta.append((estado[0], estado[1]))
+                estado = padre[estado]
             ruta.reverse()
-            return Resultado(explorados=explorados, ruta=ruta, costo=g[act],
-                             metros=longitud_m(m, ruta), codos=indices_codos(ruta),
-                             expandidos=len(cerrados))
-        for ni, nj, a in m.vecinos(i, j):
-            nuevo = (ni, nj, a)
-            if nuevo in cerrados:
+            return Resultado(explorados=explorados, ruta=ruta, costo=g[estado_actual],
+                             metros=longitud_m(modelo, ruta), codos=indices_codos(ruta),
+                             expandidos=len(estados_cerrados))
+        for i_vecino, j_vecino, accion in modelo.vecinos(i, j):
+            estado_vecino = (i_vecino, j_vecino, accion)
+            if estado_vecino in estados_cerrados:
                 continue
-            ng = g[act] + m.costo_arista(i, j, a) + (costo_codo if d0 != -1 and a != d0 else 0.0)
-            if ng < g.get(nuevo, float("inf")):
-                g[nuevo] = ng
-                padre[nuevo] = act
-                hh = h(ni, nj)
-                heapq.heappush(abierta, (ng + hh, hh, cont, nuevo))
-                cont += 1
-    return Resultado(explorados=explorados, expandidos=len(cerrados))
+            hay_giro = dir_llegada != SIN_DIRECCION and accion != dir_llegada
+            costo_tramo = modelo.costo_arista(i, j, accion)
+            g_vecino = g[estado_actual] + costo_tramo + (costo_codo if hay_giro else 0.0)
+            if g_vecino < g.get(estado_vecino, float("inf")):
+                g[estado_vecino] = g_vecino
+                padre[estado_vecino] = estado_actual
+                h_vecino = h(i_vecino, j_vecino)
+                heapq.heappush(frontera, (g_vecino + h_vecino, h_vecino, orden_insercion, estado_vecino))
+                orden_insercion += 1
+    return Resultado(explorados=explorados, expandidos=len(estados_cerrados))
 
 
-def longitud_m(m: Modelo, ruta):
-    t = 0.0
-    for a, b in zip(ruta, ruta[1:]):
-        t += (m.px if a[1] == b[1] else m.py) / ESCALA_PX_M
-    return t
+def longitud_m(modelo: Modelo, ruta):
+    total_m = 0.0
+    for origen, destino in zip(ruta, ruta[1:]):
+        total_m += (modelo.px if origen[1] == destino[1] else modelo.py) / ESCALA_PX_M
+    return total_m
 
 
 def indices_codos(ruta):
-    r = []
-    for k in range(1, len(ruta) - 1):
-        d1 = (ruta[k][0] - ruta[k - 1][0], ruta[k][1] - ruta[k - 1][1])
-        d2 = (ruta[k + 1][0] - ruta[k][0], ruta[k + 1][1] - ruta[k][1])
-        if d1 != d2:
-            r.append(k)
-    return r
+    indices = []
+    for pos in range(1, len(ruta) - 1):
+        dir_entrada = (ruta[pos][0] - ruta[pos - 1][0], ruta[pos][1] - ruta[pos - 1][1])
+        dir_salida = (ruta[pos + 1][0] - ruta[pos][0], ruta[pos + 1][1] - ruta[pos][1])
+        if dir_entrada != dir_salida:
+            indices.append(pos)
+    return indices
 
 
-def cruces_muro(m: Modelo, ruta):
+def cruces_muro(modelo: Modelo, ruta):
     """Número de muros interiores que cruza la ruta."""
     total = 0.0
-    for (i, j), (ni, nj) in zip(ruta, ruta[1:]):
-        if j == nj:  
-            total += m.mh[j][min(i, ni)]
-        else:  
-            total += m.mv[min(j, nj)][i]
+    for (i, j), (i_vecino, j_vecino) in zip(ruta, ruta[1:]):
+        if j == j_vecino:  # tramo horizontal
+            total += modelo.mh[j][min(i, i_vecino)]
+        else:  # tramo vertical
+            total += modelo.mv[min(j, j_vecino)][i]
     return round(total / COSTO_CRUCE_MURO_M)
