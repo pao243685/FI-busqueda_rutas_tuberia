@@ -43,9 +43,9 @@ class Modelo:
                     for i in range(self.nx + 1):
                         if rx0 <= self.xs[i] <= rx1 and f > self.fv[j][i]:
                             self.fv[j][i] = f
-            self.meta = META
-            self.alcanzables = self.alcanzables_desde(self.meta)
-            self.desagues = list(DESAGUES)
+        self.meta = META
+        self.alcanzables = self.alcanzables_desde(self.meta)
+        self.desagues = list(DESAGUES)
 
     def vecinos(self, i, j):
         if j > 0 and self.v[j - 1][i]:
